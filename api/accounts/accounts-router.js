@@ -8,6 +8,12 @@ const {
   deleteById,
 } = require("./accounts-model");
 
+const {
+  checkAccountPayload,
+  checkAccountNameUnique,
+  checkAccountId,
+} = require("./accounts-middleware");
+
 router.get("/", (req, res, next) => {
   // DO YOUR MAGIC
   getAll().then((accounts) => {
@@ -15,22 +21,35 @@ router.get("/", (req, res, next) => {
   });
 });
 
-router.get("/:id", (req, res, next) => {
+router.get("/:id", checkAccountId, (req, res, next) => {
   // DO YOUR MAGIC
-  getById(req.params.id).then((account) => res.json(account));
+  getById(req.params.id).then(([account]) =>
+    res.json({ name: account.name, budget: account.budget })
+  );
 });
 
-router.post("/", (req, res, next) => {
-  // DO YOUR MAGIC
-  create(req.body).then((account) => res.json(account));
-});
+router.post(
+  "/",
+  checkAccountPayload,
+  checkAccountNameUnique,
+  (req, res, next) => {
+    // DO YOUR MAGIC
+    create(req.body).then(([account]) => res.status(201).json(account));
+  }
+);
 
-router.put("/:id", (req, res, next) => {
-  // DO YOUR MAGIC
-  updateById(req.params.id, req.body).then((account) => res.json(account));
-});
+router.put(
+  "/:id",
+  checkAccountId,
+  checkAccountPayload,
+  checkAccountNameUnique,
+  (req, res, next) => {
+    // DO YOUR MAGIC
+    updateById(req.params.id, req.body).then(([account]) => res.json(account));
+  }
+);
 
-router.delete("/:id", (req, res, next) => {
+router.delete("/:id", checkAccountId, (req, res, next) => {
   // DO YOUR MAGIC
   deleteById(req.params.id).then((account) => res.json(account));
 });
